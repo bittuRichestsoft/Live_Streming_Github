@@ -16,21 +16,32 @@
 
 package com.pedro.streamer.customexample;
 
+import static android.content.ContentValues.TAG;
+
+import android.app.Dialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.graphics.Color;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
@@ -39,6 +50,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
@@ -46,32 +58,51 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 import com.pedro.common.ConnectChecker;
+import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
+import com.pedro.encoder.input.gl.render.filters.SnowFilterRender;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
-import com.pedro.library.rtmp.RtmpCamera1;
+import com.pedro.library.generic.GenericCamera1;
+import com.pedro.library.view.OpenGlView;
+import com.pedro.streamer.MainActivity;
 import com.pedro.streamer.R;
+import com.pedro.streamer.data.local.SessionManager;
+import com.pedro.streamer.data.remote.MyResource;
+import com.pedro.streamer.data.remote.Retro;
 import com.pedro.streamer.utils.PathUtils;
+import com.pedro.streamer.utils.Utility;
+import com.pedro.streamer.utils.constants.AppConstants;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+
+import okhttp3.RequestBody;
 
 /**
  * More documentation see:
  * {@link com.pedro.library.base.Camera1Base}
  * {@link com.pedro.library.rtmp.RtmpCamera1}
  */
+
+@RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 public class RtmpActivity extends AppCompatActivity
     implements Button.OnClickListener, ConnectChecker, SurfaceHolder.Callback,
     View.OnTouchListener {
 
   private Integer[] orientations = new Integer[] { 0, 90, 180, 270 };
 
-  private RtmpCamera1 rtmpCamera1;
+  private GenericCamera1 rtmpCamera1;
+
+  private OpenGlView openGlView;
   private Button bStartStop, bRecord;
   private EditText etUrl;
   private String currentDateAndTime = "";
@@ -85,22 +116,43 @@ public class RtmpActivity extends AppCompatActivity
   private CheckBox cbEchoCanceler, cbNoiseSuppressor;
   private EditText etVideoBitrate, etFps, etAudioBitrate, etSampleRate, etWowzaUser,
       etWowzaPassword;
-  private String lastVideoBitrate;
+  private String lastVideoBitrate,scoreCardUrl="",strLiveUrl="";
   private TextView tvBitrate;
+
+  ImageView iv_back;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     setContentView(R.layout.activity_custom);
     folder = PathUtils.getRecordPath();
-    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-    getSupportActionBar().setHomeButtonEnabled(true);
+    Log.e("TAG","RtmpActivity");
 
-    SurfaceView surfaceView = findViewById(R.id.surfaceView);
-    surfaceView.getHolder().addCallback(this);
-    surfaceView.setOnTouchListener(this);
-    rtmpCamera1 = new RtmpCamera1(surfaceView, this);
+    if(getSupportActionBar()!=null) {
+      getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+      getSupportActionBar().setHomeButtonEnabled(true);
+    }
+
+    try {
+    String strScore = getIntent().getExtras().getString("scoreCardUrl");
+      Log.e("TAG strScore",""+strScore);
+      if(strScore!=null)
+    {
+      scoreCardUrl=strScore;
+    }
+      Log.e("TAG scoreCardUrl",""+scoreCardUrl);
+    }
+    catch (Exception exp){
+
+    }
+    openGlView = findViewById(R.id.surfaceView);
+    openGlView.getHolder().addCallback(this);
+     openGlView.setOnTouchListener(this);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+      rtmpCamera1 = new GenericCamera1(openGlView, this);
+    }
     prepareOptionsMenuViews();
     tvBitrate = findViewById(R.id.tv_bitrate);
     etUrl = findViewById(R.id.et_rtp_url);
@@ -109,8 +161,16 @@ public class RtmpActivity extends AppCompatActivity
     bStartStop.setOnClickListener(this);
     bRecord = findViewById(R.id.b_record);
     bRecord.setOnClickListener(this);
+
+    iv_back = findViewById(R.id.iv_back);
+    iv_back.setOnClickListener(this);
+
     Button switchCamera = findViewById(R.id.switch_camera);
     switchCamera.setOnClickListener(this);
+
+
+
+
   }
 
   private void prepareOptionsMenuViews() {
@@ -193,6 +253,7 @@ public class RtmpActivity extends AppCompatActivity
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     getMenuInflater().inflate(R.menu.menu, menu);
+    getMenuInflater().inflate(R.menu.gl_webview, menu);
     return true;
   }
 
@@ -216,6 +277,71 @@ public class RtmpActivity extends AppCompatActivity
       }
       return true;
     }
+    else if (itemId == R.id.android_view) {
+      rtmpCamera1.getGlInterface().setFilter(new SnowFilterRender());
+      return true;
+    }
+
+    else if (itemId == R.id.web_view) {
+
+
+      if(scoreCardUrl.equals("")||scoreCardUrl.equals(null) || scoreCardUrl.equals("null"))
+      {
+
+        Utility.toast(this,"Your score card url is not valid, Go back and put a valid url");
+      }
+      else {
+
+//            Activity activity = this;
+        View view = LayoutInflater.from(this).inflate(R.layout.layout_web_view, null);
+        WebView webView = (WebView) view.findViewById(R.id.webView);
+//            progDailog = ProgressDialog.show(activity, "Loading","Please wait...", true);
+//            progDailog.setCancelable(false);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setLoadWithOverviewMode(true);
+        webView.getSettings().setUseWideViewPort(true);
+        webView.setInitialScale(10);
+//            webView.canZoomIn();
+//            webView.canZoomOut();
+        webView.setBackgroundColor(
+                Color.TRANSPARENT
+        );
+        webView.getSettings().setDomStorageEnabled(true);
+        webView.setWebViewClient(new WebViewClient() {
+          @Override
+          public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                    Log.e("web_shouldOverrideUrlLoading",""+url);
+//                   progDailog.show();
+            view.loadUrl(url);
+
+            return true;
+          }
+
+          @Override
+          public void onPageFinished(WebView view, final String url) {
+            Log.e("web_onpagefinished", "" + url);
+//                  progDailog.dismiss();
+          }
+        });
+
+        webView.loadUrl(scoreCardUrl);
+
+        View root = findViewById(R.id.activity_custom);
+        int sizeSpecWidth = View.MeasureSpec.makeMeasureSpec(root.getWidth(), View.MeasureSpec.EXACTLY);
+        int sizeSpecHeight = View.MeasureSpec.makeMeasureSpec(root.getHeight(), View.MeasureSpec.EXACTLY);
+
+        //Set view size to allow rendering
+        webView.measure(sizeSpecWidth, sizeSpecHeight);
+        webView.layout(0, 0, webView.getMeasuredWidth(), webView.getMeasuredHeight());
+
+        AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
+        androidViewFilterRender.setView(webView);
+        rtmpCamera1.getGlInterface().setFilter(androidViewFilterRender);
+
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -243,6 +369,10 @@ public class RtmpActivity extends AppCompatActivity
                   Toast.LENGTH_SHORT).show();
           bStartStop.setText(getResources().getString(R.string.start_button));
         }
+
+       callApiWithDelay();
+
+     //   http://192.168.1.2:8001/api/stream/stream-url
       } else {
         bStartStop.setText(getResources().getString(R.string.start_button));
         rtmpCamera1.stopStream();
@@ -299,6 +429,85 @@ public class RtmpActivity extends AppCompatActivity
         Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
       }
     }
+
+    else if (id == R.id.iv_back) {
+
+      try {
+        if (rtmpCamera1 != null)
+          rtmpCamera1.stopStream();
+      }
+      catch (Exception excep)
+      {
+
+      }
+
+      try {
+     Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
+       } catch ( Exception e) {
+        Toast.makeText(RtmpActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+      }
+    }
+  }
+
+  private void callApiWithDelay() {
+    new Handler().postDelayed(new Runnable() {
+      @Override
+      public void run() {
+        callGetLiveVdoUrl(RtmpActivity.this);
+      }
+    },5000);
+  }
+
+  public void callGetLiveVdoUrl(Context context) {
+
+
+    Retro.networkCalls(new Dialog(context),Retro.service(context).getActiveLiveVideo(), new MyResource() {
+      @Override
+      public void isSuccess(String res) {
+        try {
+          JSONObject jsonObject1 = new JSONObject(res);
+          String strMsg=jsonObject1.getString("message");
+          Log.e("message of liveVdo",  strMsg  );
+
+
+          if (jsonObject1.getInt(AppConstants.STATUS) == 200) {
+            JSONObject data = jsonObject1.getJSONObject("data");
+            Log.e("TAG", "callGetLiveVdoUrl data: " + data);
+                strLiveUrl=data.get("url").toString();
+
+
+            /*{
+    "status": 200,
+    "message": "Streaming url fetched successfully",
+    "data": {
+        "url": "https://www.youtube.com/watch?v=rGFLWzz5Nw4"
+    },
+    "timestamp": "2024-03-01T14:18:54.844Z"
+}*/
+
+          }else   {
+            Utility.toast(context, strMsg);
+          }
+        } catch (Exception e) {
+          Log.e("Exception message of liveVdo",  e.toString());
+
+                   }
+
+      }
+
+      @Override
+      public void isError(String err, int code) {
+        Utility.toast(context, err);
+      }
+    });
+
+
+
   }
 
   private boolean prepareEncoders() {
@@ -416,4 +625,8 @@ public class RtmpActivity extends AppCompatActivity
     }
     return true;
   }
+
+
+
+
 }

@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:openDrawer="start"
+    android:orientation="horizontal"
     android:id="@+id/activity_custom"
     >
 
@@ -13,29 +14,52 @@
       android:layout_height="match_parent"
       >
 
-    <SurfaceView
+    <com.pedro.library.view.OpenGlView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/surfaceView"
+        app:AAEnabled="false"
+        app:numFilters="1"
+        app:isFlipHorizontal="false"
+        app:isFlipVertical="false"
         />
+
+    <!--<SurfaceView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/surfaceView"
+        />-->
 
     <EditText
         android:textColor="@color/appColor"
         android:textColorHint="@color/appColor"
         android:inputType="textUri"
+        android:text="rtmp://a.rtmp.youtube.com/live2/xbxa-e4jh-r84h-b0j5-4470"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:layout_margin="20dp"
+        android:visibility="gone"
         android:id="@+id/et_rtp_url"
         app:layout_constraintTop_toTopOf="parent"
         />
+
+    <ImageView
+        android:id="@+id/iv_back"
+
+        android:layout_width="@dimen/_20sdp"
+        android:layout_height="@dimen/_20sdp"
+        android:layout_gravity="end"
+        android:src="@drawable/back_icon"
+        android:rotation="180"
+        tools:ignore="MissingConstraints" />
 
     <Button
         android:text="@string/start_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/b_record"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/b_start_stop"
@@ -84,6 +108,7 @@
       android:fitsSystemWindows="true"
       app:headerLayout="@xml/options_header"
       android:id="@+id/nv_rtp"
+
       >
   </com.google.android.material.navigation.NavigationView>
 </androidx.drawerlayout.widget.DrawerLayout>

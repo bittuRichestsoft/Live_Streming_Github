@@ -69,9 +69,9 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
   private Context context;
 
   //default parameters for camera
-  private int width = 640;
-  private int height = 480;
-  private int fps = 30;
+  private int width = 1920;
+  private int height = 1080;
+  private int fps = 60;
   private int rotation = 0;
   private int imageFormat = ImageFormat.NV21;
   private byte[] yuvBuffer;

@@ -15,11 +15,11 @@
           android:title="@string/microphone"
           app:showAsAction="always"
           />
-      <item
+      <!--<item
           android:id="@+id/camera"
           android:icon="@drawable/icon_camera"
           android:title="@string/camera"
-          app:showAsAction="always"
+          app:showAsAction="always"-->
           />
     </menu>
   </item>

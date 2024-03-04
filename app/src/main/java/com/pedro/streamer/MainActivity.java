@@ -29,9 +29,14 @@ import android.content.pm.PackageManager;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,30 +45,24 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import com.pedro.streamer.backgroundexample.BackgroundActivity;
 import com.pedro.streamer.customexample.RtmpActivity;
-import com.pedro.streamer.customexample.RtspActivity;
-import com.pedro.streamer.defaultexample.ExampleRtmpActivity;
-import com.pedro.streamer.defaultexample.ExampleRtspActivity;
-import com.pedro.streamer.defaultexample.ExampleSrtActivity;
-import com.pedro.streamer.displayexample.DisplayActivity;
-import com.pedro.streamer.filestreamexample.RtmpFromFileActivity;
-import com.pedro.streamer.filestreamexample.RtspFromFileActivity;
-import com.pedro.streamer.openglexample.OpenGlGenericActivity;
-import com.pedro.streamer.openglexample.OpenGlRtmpActivity;
-import com.pedro.streamer.openglexample.OpenGlRtspActivity;
-import com.pedro.streamer.openglexample.OpenGlSrtActivity;
+import com.pedro.streamer.data.local.SessionManager;
 import com.pedro.streamer.rotation.RotationExampleActivity;
 import com.pedro.streamer.utils.ActivityLink;
 import com.pedro.streamer.utils.ImageAdapter;
+import com.pedro.streamer.utils.Utility;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
 
   private GridView list;
   private List<ActivityLink> activities;
+
+  Button btnStream;
+  LinearLayout llLogout;
+  EditText etStreamUrl;
 
   private final String[] PERMISSIONS = {
       Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA,
@@ -85,6 +84,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     tvVersion.setText(getString(R.string.version, BuildConfig.VERSION_NAME));
 
     list = findViewById(R.id.list);
+    btnStream = (Button)findViewById(R.id.btnStream) ;
+    llLogout = (LinearLayout) findViewById(R.id.llLogout) ;
+    etStreamUrl=(EditText)findViewById(R.id.etStreamUrl);
+
+
+    btnStream.setOnClickListener(this);
+    llLogout.setOnClickListener(this);
     createList();
     setListAdapter(activities);
     requestPermissions();
@@ -105,9 +111,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   @SuppressLint("NewApi")
   private void createList() {
     activities = new ArrayList<>();
-    activities.add(new ActivityLink(new Intent(this, RtmpActivity.class),
+    Intent intent =new Intent(this, RtmpActivity.class);
+
+    activities.add(new ActivityLink(intent,
         getString(R.string.rtmp_streamer), JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, RtspActivity.class),
+    /*activities.add(new ActivityLink(new Intent(this, RtspActivity.class),
         getString(R.string.rtsp_streamer), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
         getString(R.string.default_rtmp), JELLY_BEAN));
@@ -132,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       activities.add(new ActivityLink(new Intent(this, BackgroundActivity.class),
               getString(R.string.service_rtp), LOLLIPOP));
       activities.add(new ActivityLink(new Intent(this, RotationExampleActivity.class),
-              getString(R.string.rotation_rtmp), LOLLIPOP));
+              getString(R.string.rotation_rtmp), LOLLIPOP));*/
   }
 
   private void setListAdapter(List<ActivityLink> activities) {
@@ -144,6 +152,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
     if (hasPermissions(this)) {
       ActivityLink link = activities.get(i);
+
+
       int minSdk = link.getMinSdk();
       if (link.getLabel().equals(getString(R.string.rotation_rtmp)) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
         MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
@@ -164,7 +174,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
   protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
     if (data != null && (requestCode == 0 && resultCode == Activity.RESULT_OK) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      ActivityLink link = new ActivityLink(new Intent(this, RotationExampleActivity.class),
+
+      Intent intent =new Intent(this, RtmpActivity.class);
+
+      Log.e("mainActivity","createList2"+etStreamUrl.getText().toString());
+
+       intent.putExtra("scoreCardUrl","createList2"+etStreamUrl.getText().toString());
+
+      ActivityLink link = new ActivityLink(intent,
           getString(R.string.rotation_rtmp), LOLLIPOP);
       startActivity(link.getIntent());
       overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
@@ -211,5 +228,59 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
       }
     }
     return true;
+  }
+
+  @Override
+  public void onClick(View view) {
+
+    switch (view.getId())
+    {
+      case R.id.btnStream -> {
+
+        String strScoreBoardUrl=etStreamUrl.getText().toString();
+        Log.e("btnSteam clicked",""+strScoreBoardUrl);
+
+
+
+
+        if ( Utility.isCheckEmptyOrNull(strScoreBoardUrl) && (strScoreBoardUrl.contains("cricclubs.com"))) {
+          if (hasPermissions(this)) {
+            ActivityLink link = activities.get(0);
+
+            strScoreBoardUrl = strScoreBoardUrl.replace("cricclubs.com/viewScorecard.do","cricclubs.com/live/CricClubsLive.do").replaceAll(" ","");
+            link.getIntent().putExtra("scoreCardUrl", "" + strScoreBoardUrl);
+
+
+            int minSdk = link.getMinSdk();
+            if (link.getLabel().equals(getString(R.string.rotation_rtmp)) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+              MediaProjectionManager mediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+              Intent intent = mediaProjectionManager.createScreenCaptureIntent();
+              startActivityForResult(intent, 0);
+            } else if (Build.VERSION.SDK_INT >= minSdk) {
+              startActivity(link.getIntent());
+              overridePendingTransition(R.transition.slide_in, R.transition.slide_out);
+            } else {
+              showMinSdkError(minSdk);
+            }
+          } else {
+            showPermissionsErrorAndRequest();
+          }
+        }
+      else{
+          Utility.toast(this, "Please enter your valid Scorecard URL");
+
+        }
+
+
+      }
+
+
+
+case      R.id.llLogout ->{
+  Utility.logout(getApplicationContext());
+}
+
+    }
+
   }
 }

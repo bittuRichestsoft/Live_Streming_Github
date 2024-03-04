@@ -15,7 +15,7 @@ android {
 
   defaultConfig {
     minSdk = 16
-    lint.targetSdk = 34
+//    lint.targetSdk = 34
   }
   buildTypes {
     release {
@@ -23,8 +23,8 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
   }
   kotlinOptions {
     jvmTarget = "17"

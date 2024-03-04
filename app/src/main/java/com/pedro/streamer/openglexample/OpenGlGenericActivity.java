@@ -16,12 +16,14 @@
 
 package com.pedro.streamer.openglexample;
 
+import android.app.ProgressDialog;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -30,6 +32,8 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -116,12 +120,22 @@ public class OpenGlGenericActivity extends AppCompatActivity
     private String currentDateAndTime = "";
     private File folder;
     private OpenGlView openGlView;
+   private WebView webViewGL;
     private SpriteGestureController spriteGestureController = new SpriteGestureController();
+
+
+    private ProgressDialog progDailog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // hide app bar
+//        getSupportActionBar().hide();
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+
+
         setContentView(R.layout.activity_open_gl);
         folder = PathUtils.getRecordPath();
         openGlView = findViewById(R.id.surfaceView);
@@ -136,6 +150,42 @@ public class OpenGlGenericActivity extends AppCompatActivity
         genericCamera1 = new GenericCamera1(openGlView, this);
         openGlView.getHolder().addCallback(this);
         openGlView.setOnTouchListener(this);
+//        webViewGL = findViewById(R.id.webViewGL);
+//        View webLayoutView = LayoutInflater.from(this).inflate(R.layout.layout_web_view, null);
+//        webViewGL = (WebView) webLayoutView.findViewById(R.id.webView);
+//        Activity activity = this;
+//        progDailog = ProgressDialog.show(activity, "Loading","Please wait...", true);
+//        progDailog.setCancelable(false);
+//        webViewGL.getSettings().setJavaScriptEnabled(true);
+//        webViewGL.getSettings().setLoadWithOverviewMode(true);
+//        webViewGL.getSettings().setUseWideViewPort(true);
+//        webViewGL.setBackgroundColor(Color.TRANSPARENT);
+////        webViewGL.setInitialScale(1);
+//        webViewGL.setWebViewClient(new WebViewClient(){
+//            @Override
+//            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                progDailog.show();
+//              view.loadUrl(url);
+//                return true;
+//            }
+//            @Override
+//            public void onPageFinished(WebView view, final String url) {
+//                progDailog.dismiss();
+//            }
+//        });
+//        webViewGL.loadUrl("http://cricclubs.com/live/CricClubsLive.do?matchId=1929&clubId=22187");
+//
+//        int sizeSpecWidth = View.MeasureSpec.makeMeasureSpec(webViewGL.getWidth(), View.MeasureSpec.EXACTLY);
+//        int sizeSpecHeight = View.MeasureSpec.makeMeasureSpec(webViewGL.getHeight(), View.MeasureSpec.EXACTLY);
+//        //Set view size to allow rendering
+//        webViewGL.measure(sizeSpecWidth, sizeSpecHeight);
+//        webViewGL.layout(0, 0, webViewGL.getMeasuredWidth(), webViewGL.getMeasuredHeight());
+//
+//        AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
+//        androidViewFilterRender.setView(webViewGL);
+//        genericCamera1.getGlInterface().setFilter(androidViewFilterRender);
+
+
     }
 
     @Override
@@ -180,7 +230,58 @@ public class OpenGlGenericActivity extends AppCompatActivity
             androidViewFilterRender.setView(view);
             genericCamera1.getGlInterface().setFilter(androidViewFilterRender);
             return true;
-        } else if (itemId == R.id.basic_deformation) {
+        }
+
+        else if (itemId == R.id.web_view) {
+//            Activity activity = this;
+            View view = LayoutInflater.from(this).inflate(R.layout.layout_web_view, null);
+            WebView webView = (WebView)view.findViewById(R.id.webView);
+//            progDailog = ProgressDialog.show(activity, "Loading","Please wait...", true);
+//            progDailog.setCancelable(false);
+            webView.getSettings().setJavaScriptEnabled(true);
+            webView.getSettings().setLoadWithOverviewMode(true);
+            webView.getSettings().setUseWideViewPort(true);
+            webView.setInitialScale(10);
+//            webView.canZoomIn();
+//            webView.canZoomOut();
+            webView.setBackgroundColor(
+                    Color.TRANSPARENT
+            );
+             webView.getSettings() .setDomStorageEnabled(true);
+            webView.setWebViewClient(new WebViewClient(){
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+//                    Log.e("web_shouldOverrideUrlLoading",""+url);
+//                   progDailog.show();
+                      view.loadUrl(url);
+
+                    return true;
+                }
+                @Override
+                public void onPageFinished(WebView view, final String url) {
+                    Log.e("web_onpagefinished",""+url);
+//                  progDailog.dismiss();
+                }
+            });
+
+            webView.loadUrl("http://cricclubs.com/live/CricClubsLive.do?matchId=1929&clubId=22187");
+
+            View root = findViewById(R.id.activity_example_rtmp);
+            int sizeSpecWidth = View.MeasureSpec.makeMeasureSpec(root.getWidth(), View.MeasureSpec.EXACTLY);
+            int sizeSpecHeight = View.MeasureSpec.makeMeasureSpec(root.getHeight(), View.MeasureSpec.EXACTLY);
+
+                 //Set view size to allow rendering
+            webView.measure(sizeSpecWidth, sizeSpecHeight);
+            webView.layout(0, 0, webView.getMeasuredWidth(), webView.getMeasuredHeight());
+
+            AndroidViewFilterRender androidViewFilterRender = new AndroidViewFilterRender();
+            androidViewFilterRender.setView(webView);
+            genericCamera1.getGlInterface().setFilter(androidViewFilterRender);
+
+            return true;
+        }
+
+        else if (itemId == R.id.basic_deformation) {
             genericCamera1.getGlInterface().setFilter(new BasicDeformationFilterRender());
             return true;
         } else if (itemId == R.id.beauty) {
@@ -360,6 +461,8 @@ public class OpenGlGenericActivity extends AppCompatActivity
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
+
+
 
     @Override
     public void onConnectionStarted(@NonNull String url) {

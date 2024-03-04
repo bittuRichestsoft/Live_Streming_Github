@@ -16,19 +16,21 @@
 
 package com.pedro.streamer.rotation
 
+import android.app.Activity
 import android.app.ActivityManager
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
-import android.view.SurfaceHolder
-import android.view.WindowManager
+import android.view.*
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.VIEW_MODEL_STORE_OWNER_KEY
 import com.pedro.library.util.sources.audio.InternalSource
 import com.pedro.library.util.sources.audio.MicrophoneSource
 import com.pedro.library.util.sources.video.Camera1Source
@@ -52,12 +54,23 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
   private lateinit var binding: ActivityExampleBinding
   private var service: StreamService? = null
 
+
+  private var webViewGL2: WebView? = null
+   private var progDailog: ProgressDialog? = null
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     binding = ActivityExampleBinding.inflate(layoutInflater)
     setContentView(binding.root)
     binding.etRtpUrl.setHint(R.string.hint_rtmp)
+
+
+
+    binding.etRtpUrl.setText("rtmp://a.rtmp.youtube.com/live2/xbxa-e4jh-r84h-b0j5-4470")
+    binding.etRtpUrl.visibility= View.GONE;
+
+
     binding.surfaceView.holder.addCallback(this)
     StreamService.observer.observe(this) {
       if (it != null) {
@@ -94,6 +107,43 @@ class RotationExampleActivity: AppCompatActivity(), SurfaceHolder.Callback {
     binding.switchCamera.setOnClickListener {
       service?.switchCamera()
     }
+
+
+
+
+
+
+
+    webViewGL2 = findViewById(R.id.webViewGL2)
+    val activity: Activity = this
+
+    progDailog = ProgressDialog.show(activity, "Loading", "Please wait...", true)
+    progDailog!!.setCancelable(false)
+
+    webViewGL2!!.settings.javaScriptEnabled = true
+    webViewGL2!!.settings.loadWithOverviewMode = true
+    webViewGL2!!.settings.useWideViewPort = true
+
+
+
+
+    webViewGL2!!.setInitialScale(1);
+
+    webViewGL2!!.webViewClient = object : WebViewClient() {
+      override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+        progDailog!!.show()
+        view.loadUrl(url)
+        return true
+      }
+
+      override fun onPageFinished(view: WebView, url: String) {
+        progDailog!!.dismiss()
+      }
+    }
+
+    webViewGL2!!.loadUrl("http://cricclubs.com/live/CricClubsLive.do?matchId=1929&clubId=22187")
+
+
   }
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {

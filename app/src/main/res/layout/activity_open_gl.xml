@@ -5,17 +5,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
+
   <com.pedro.library.view.OpenGlView
       android:layout_width="match_parent"
       android:layout_height="match_parent"
       android:id="@+id/surfaceView"
-      app:aspectRatioMode="adjust"
+
       app:AAEnabled="false"
       app:numFilters="1"
       app:isFlipHorizontal="false"
       app:isFlipVertical="false"
       />
 
+ <!-- <SurfaceView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:id="@+id/surfaceView"
+      android:gravity="center"
+      app:layout_constraintTop_toTopOf="parent"  />-->
+
+  <!--<WebView
+      android:id="@+id/webViewGL"
+      android:layout_width="match_parent"
+      android:layout_height="200dp"
+      android:background="@android:color/transparent"
+      android:alpha="0.5"
+      android:gravity="center"
+      android:layout_marginTop="20dp"
+      app:layout_constraintTop_toTopOf="parent"/>-->
   <EditText
       android:textColor="@color/appColor"
       android:textColorHint="@color/appColor"
@@ -25,6 +42,7 @@
       android:gravity="center"
       android:layout_margin="20dp"
       android:id="@+id/et_rtp_url"
+      android:text="rtmp://a.rtmp.youtube.com/live2/xbxa-e4jh-r84h-b0j5-4470"
       app:layout_constraintTop_toTopOf="parent"
       />
 

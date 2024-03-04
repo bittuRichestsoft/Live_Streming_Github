@@ -20,7 +20,6 @@ import android.media.MediaCodec
 import com.pedro.rtsp.rtp.packets.G711Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import junit.framework.TestCase
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer

@@ -16,7 +16,6 @@
 
 package com.pedro.srt.mpeg2ts.psi
 
-import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import kotlin.random.Random
 

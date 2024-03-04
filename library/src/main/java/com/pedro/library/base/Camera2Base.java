@@ -390,7 +390,7 @@ public abstract class Camera2Base {
    */
   public boolean prepareVideo() {
     int rotation = CameraHelper.getCameraOrientation(context);
-    return prepareVideo(640, 480, 30, 1200 * 1024, rotation);
+    return prepareVideo(700, 480, 30, 1200 * 1024, rotation);
   }
 
   /**

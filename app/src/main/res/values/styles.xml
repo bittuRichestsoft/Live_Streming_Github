@@ -1,7 +1,19 @@
 <resources>
 
   <style name="AppTheme"
-      parent="Theme.AppCompat.Light.DarkActionBar">
+      parent="Theme.MaterialComponents.Light.DarkActionBar">
+
+    <item name="colorPrimary">@color/appColor</item>
+    <item name="colorPrimaryDark">@color/appColor</item>
+    <item name="colorAccent">@color/appColor</item>
+    <item name="android:buttonStyle">@style/buttonStyle</item>
+    <item name="buttonStyle">@style/buttonStyle</item>
+  </style>
+
+
+  <style name="NoAppTheme"
+      parent="Theme.MaterialComponents.Light.NoActionBar">
+
     <item name="colorPrimary">@color/appColor</item>
     <item name="colorPrimaryDark">@color/appColor</item>
     <item name="colorAccent">@color/appColor</item>
@@ -16,5 +28,65 @@
     <item name="android:textColor">@color/white</item>
     <item name="android:textStyle">bold</item>
   </style>
+
+
+
+  <style name="linear_layout_login">
+
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">wrap_content</item>
+  </style>
+
+  <style name="StyleText">
+    <item name="android:lineSpacingMultiplier">1.3</item>
+    <item name="android:layout_width">wrap_content</item>
+    <item name="android:layout_height">wrap_content</item>
+    <item name="android:textAppearance">@style/TextAppearance.AppCompat.Subhead</item>
+    <item name="android:includeFontPadding">false</item>
+    <item name="android:fontFamily">@font/inter_black</item>
+    <item name="android:textSize">@dimen/_12sdp</item>
+    <item name="android:textColor">@color/black</item>
+  </style>
+
+
+  <style name="StyleEdiText_Login">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">@dimen/_35sdp</item>
+    <item name="android:paddingStart">@dimen/_15sdp</item>
+    <item name="android:layout_marginEnd">@dimen/_25sdp</item>
+    <item name="android:layout_marginStart">@dimen/_25sdp</item>
+    <item name="android:fontFamily">@font/inter_black</item>
+    <item name="android:textSize">@dimen/edittext_hintsize</item>
+    <item name="android:includeFontPadding">false</item>
+    <item name="android:gravity">center_vertical</item>
+    <item name="android:textColorHint">@color/black</item>
+    <item name="android:textColor">@color/black</item>
+  <!--  <item name="android:background">@drawable/login_text_border</item>-->
+  </style>
+
+
+
+  <style name="StyleButtons">
+    <item name="android:layout_width">match_parent</item>
+    <item name="android:layout_height">@dimen/_35sdp</item>
+    <item name="android:layout_marginEnd">@dimen/_25sdp</item>
+    <item name="android:layout_marginStart">@dimen/_25sdp</item>
+    <item name="android:fontFamily">@font/inter_black</item>
+    <item name="android:textSize">@dimen/_12sdp</item>
+    <item name="android:includeFontPadding">false</item>
+    <item name="android:gravity">center_vertical</item>
+    <item name="android:textColorHint">@color/white</item>
+    <item name="android:textColor">@color/white</item>
+   <!-- <item name="android:background">@drawable/login_text_border</item>-->
+  </style>
+
+
+  <style name="TextLabel" parent="TextAppearance.Design.Hint">
+    <item name="android:textSize">10sp</item>
+    <item name="fontFamily">@font/inter_regular</item>
+    <item name="font">@font/inter_regular</item>
+  </style>
+
+
 </resources>
 

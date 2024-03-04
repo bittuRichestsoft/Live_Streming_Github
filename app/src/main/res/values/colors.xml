@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <color name="appColor">#e74c3c</color>
-  <color name="black">#000000</color>
+  <color name="black">#333333</color>
+  <color name="grey">#757373</color>
   <color name="white">#ffffff</color>
+  <color name="btn_bg">#EEEEEE</color>
+
+
+
+
+
+  <color name="transparent">#00000000</color>
+
+  <color name="colorPrimary">#31C0D0</color>
+  <color name="colorPrimaryDark">#31C0D0</color>
+  <color name="colorAccent">#31C0D0</color>
+  <color name="colorPink">#EA4868</color>
 </resources>
