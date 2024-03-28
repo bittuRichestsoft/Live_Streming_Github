@@ -52,7 +52,7 @@ dependencies {
   implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
 
 
-  implementation ("com.intuit.sdp:sdp-android:1.0.6")
+  implementation ("com.intuit.sdp:sdp-android:1.1.1")
 
   implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
   implementation ("io.reactivex.rxjava2:rxjava:2.2.16")
